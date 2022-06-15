@@ -14,7 +14,6 @@ const axios = require('axios');
 const otpGenerator = require('otp-generator')
 const { getService } = require('../utils');
 const {
-  validateCallbackBody,
   validateLoginPhoneBody,
   validateRegisterBody,
   validateSendEmailConfirmationBody,

@@ -35,7 +35,7 @@ module.exports = {
 
     await validateCreateUserBody(ctx.request.body);
 
-    const { phoneNumber, role } = ctx.request.body;
+    const { role } = ctx.request.body;
 
     /*
         const userWithSameUsername = await strapi
