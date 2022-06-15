@@ -7,18 +7,7 @@ const deleteRoleSchema = yup.object().shape({
 });
 
 const createUserBodySchema = yup.object().shape({
-  email: yup
-    .string()
-    .email()
-    .required(),
-  username: yup
-    .string()
-    .min(1)
-    .required(),
-  password: yup
-    .string()
-    .min(1)
-    .required(),
+  phoneNumber: yup.string().required(),
   role: yup.strapiID(),
 });
 

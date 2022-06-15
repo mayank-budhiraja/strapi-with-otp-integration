@@ -18,41 +18,24 @@ module.exports = {
   attributes: {
     username: {
       type: 'string',
-      minLength: 3,
-      unique: true,
-      configurable: false,
-      required: true,
+      unique: false,
+      configurable: true,
+      required: false,
     },
     email: {
       type: 'email',
       minLength: 6,
       configurable: false,
-      required: true,
+      required: false,
     },
     provider: {
       type: 'string',
       configurable: false,
     },
-    password: {
-      type: 'password',
-      minLength: 6,
-      configurable: false,
-      private: true,
-    },
     resetPasswordToken: {
       type: 'string',
       configurable: false,
       private: true,
-    },
-    confirmationToken: {
-      type: 'string',
-      configurable: false,
-      private: true,
-    },
-    confirmed: {
-      type: 'boolean',
-      default: false,
-      configurable: false,
     },
     blocked: {
       type: 'boolean',
@@ -66,6 +49,12 @@ module.exports = {
       inversedBy: 'users',
       configurable: false,
     },
+    phoneNumber: {
+      type: 'string',
+      unique: false,
+      configurable: true,
+      required: true,
+    }
   },
 
   config: schemaConfig, // TODO: to move to content-manager options

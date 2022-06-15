@@ -31,17 +31,21 @@ module.exports = {
       .store({ type: 'plugin', name: 'users-permissions', key: 'advanced' })
       .get();
 
+    console.log('findThis2 - create function entry',)
+
     await validateCreateUserBody(ctx.request.body);
 
-    const { email, username, role } = ctx.request.body;
+    const { phoneNumber, role } = ctx.request.body;
 
-    const userWithSameUsername = await strapi
-      .query('plugin::users-permissions.user')
-      .findOne({ where: { username } });
-
-    if (userWithSameUsername) {
-      if (!email) throw new ApplicationError('Username already taken');
-    }
+    /*
+        const userWithSameUsername = await strapi
+          .query('plugin::users-permissions.user')
+          .findOne({ where: { phoneNumber } });
+    
+          
+        if (userWithSameUsername) {
+          if (!email) throw new ApplicationError('Username already taken');
+        }
 
     if (advanced.unique_email) {
       const userWithSameEmail = await strapi
@@ -52,13 +56,13 @@ module.exports = {
         throw new ApplicationError('Email already taken');
       }
     }
-
+  */
     const user = {
       ...ctx.request.body,
       provider: 'local',
     };
 
-    user.email = _.toLower(user.email);
+    // user.email = _.toLower(user.email);
 
     if (!role) {
       const defaultRole = await strapi
@@ -74,6 +78,7 @@ module.exports = {
 
       ctx.created(sanitizedData);
     } catch (error) {
+      console.log('findThis2 - create function',)
       throw new ApplicationError(error.message);
     }
   },
@@ -94,7 +99,7 @@ module.exports = {
     if (!user) {
       throw new NotFoundError(`User not found`);
     }
-    
+
 
     await validateUpdateUserBody(ctx.request.body);
 

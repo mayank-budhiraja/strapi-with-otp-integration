@@ -49,7 +49,7 @@ module.exports = {
   async create(ctx) {
     const { body } = ctx.request;
     const { user: admin, userAbility } = ctx.state;
-
+    console.log('findThis - content manager issue')
     const { email, username } = body;
 
     const pm = strapi.admin.services.permission.createPermissionsManager({

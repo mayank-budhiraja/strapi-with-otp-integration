@@ -20,8 +20,7 @@ module.exports = {
   attributes: {
     name: {
       type: 'string',
-      minLength: 3,
-      required: true,
+      required: false,
       configurable: false,
     },
     description: {

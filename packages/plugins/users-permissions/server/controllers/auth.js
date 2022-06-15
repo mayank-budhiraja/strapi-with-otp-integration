@@ -44,7 +44,6 @@ module.exports = {
         throw new ApplicationError('This provider is disabled');
       }
 
-      console.log('findThis1', params)
       await validateLoginPhoneBody(params);
 
       const query = { provider };
@@ -61,15 +60,14 @@ module.exports = {
         query.username = params.identifier;
       }
 
+      const addPhoneNumber = parseInt(params.phoneNumber);
+
       if (isPhone) {
-        query.phoneNumber = parseInt(query.phoneNumber);
 
         // Generate random number
-        const randomOTP = '5666' // otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
+        const randomOTP = otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false });
 
         // send otp
-
-        /*
         await axios.get('https://www.fast2sms.com/dev/bulkV2', {
           params: {
             "authorization": "M8ReHdNrjuFoDCGnL2fZ5O4thVslpIJTz6BSK3xa7wWXmbcvEgUNbHXs2qCOleW7Dpnf13kxi6SaVPQj",
@@ -82,33 +80,44 @@ module.exports = {
             data: response.data
           });
         }).catch((error) => {
+          console.log('OTP error', error);
           throw new ValidationError('sending OTP Error');
         })
-        */
 
-        // save in database
-        await strapi
+        // Check if user exists
+        const user = await strapi
           .query('plugin::users-permissions.user')
-          .update({ where: { phoneNumber: query.phoneNumber }, data: { randomOTP } });
+          .findOne({ select: ['phoneNumber'], where: { phoneNumber: addPhoneNumber } });
+
+        console.log('user found --', user, randomOTP)
+
+        if (user) {
+          await strapi
+            .query('plugin::users-permissions.user')
+            .update({ select: ['phoneNumber', 'resetPasswordToken'], where: { phoneNumber: addPhoneNumber }, data: { resetPasswordToken: randomOTP } });
+        } else {
+          // save in database
+          // we should create a user here
+          await strapi
+            .query('plugin::users-permissions.user')
+            .create({ select: ['phoneNumber', 'resetPasswordToken'], data: { phoneNumber: addPhoneNumber, resetPasswordToken: randomOTP }, });
+        }
       }
 
-      // Find the user by phone number.
       const user = await strapi
         .query('plugin::users-permissions.user')
-        .findOne({ where: { phoneNumber: query.phoneNumber } });
+        .findOne({ select: ['phoneNumber', 'resetPasswordToken'], where: { phoneNumber: addPhoneNumber } });
 
+      console.log('user updated --', user)
 
-      if (!user) {
-        // If user doesn't exist then register user
-      }
-
-
+      /*
       if (
         _.get(await store.get({ key: 'advanced' }), 'email_confirmation') &&
         user.confirmed !== true
       ) {
         throw new ApplicationError('Your account email is not confirmed');
       }
+      */
 
       /*
       if (user.blocked === true) {
@@ -151,76 +160,74 @@ module.exports = {
   async verifyOTP(ctx) {
     const params = _.assign({}, ctx.request.body, ctx.params);
 
-    if (params.code) {
+    if (params.phoneNumber && params.code) {
       // Compare client pass with db pass
-      const user = await strapi
-        .query('plugin::users-permissions.user')
-        .findOne({ where: { resetPasswordToken: `${params.code}` } });
+      try {
+        const user = await strapi
+          .query('plugin::users-permissions.user')
+          .findOne({ select: ['phoneNumber', 'resetPasswordToken', 'confirmed', 'id'], where: { phoneNumber: params.phoneNumber, resetPasswordToken: params.code } });
 
-      if (!user) {
-        const pluginStore = await strapi.store({ type: 'plugin', name: 'users-permissions' });
+        if (!user.confirmed) {
+          const pluginStore = await strapi.store({ type: 'plugin', name: 'users-permissions' });
 
-        const settings = await pluginStore.get({
-          key: 'advanced',
-        });
+          const settings = await pluginStore.get({
+            key: 'advanced',
+          });
 
-        if (!settings.allow_register) {
-          throw new ApplicationError('Register action is currently disabled');
-        }
-
-        const params = {
-          ..._.omit(ctx.request.body, ['confirmed', 'confirmationToken', 'resetPasswordToken']),
-          provider: 'local',
-        };
-
-        const role = await strapi
-          .query('plugin::users-permissions.role')
-          .findOne({ where: { type: settings.default_role } });
-
-        if (!role) {
-          throw new ApplicationError('Impossible to find the default role');
-        }
-
-        params.role = role.id;
-
-        try {
-          if (!settings.email_confirmation) {
-            params.confirmed = true;
+          if (!settings.allow_register) {
+            throw new ApplicationError('Register action is currently disabled');
           }
 
-          const user = await getService('user').add(params);
+          const params = {
+            ..._.omit(ctx.request.body, ['confirmed', 'confirmationToken', 'resetPasswordToken']),
+            provider: 'local',
+          };
 
-          console.log('findThis-work', user)
+          const role = await strapi
+            .query('plugin::users-permissions.role')
+            .findOne({ where: { type: settings.default_role } });
 
-          const sanitizedUser = await sanitizeUser(user, ctx);
+          if (!role) {
+            throw new ApplicationError('Impossible to find the default role');
+          }
 
-          const jwt = getService('jwt').issue(_.pick(user, ['id']));
+          params.role = role.id;
 
-          return ctx.send({
-            jwt,
-            user: sanitizedUser,
-          });
-        } catch (err) {
-          if (_.includes(err.message, 'username')) {
-            throw new ApplicationError('Username already taken');
-          } else if (_.includes(err.message, 'email')) {
-            throw new ApplicationError('Email already taken');
-          } else {
+          try {
+
+            const newUser = await getService('user').edit(user.id, { ...params, confirmed: true, resetPasswordToken: null });
+
+            console.log('find user -- confirmed', newUser)
+
+            const sanitizedUser = await sanitizeUser(newUser, ctx);
+
+            const jwt = getService('jwt').issue(_.pick(newUser, ['id']));
+
+            return ctx.send({
+              jwt,
+              user: sanitizedUser,
+            });
+          } catch (err) {
             strapi.log.error(err);
             throw new ApplicationError('An error occurred during account creation');
           }
+        } else if (user && user.confirmed) {
+          console.log('findThis -- existing user 2')
+          await getService('user').edit(user.id, {
+            resetPasswordToken: null,
+          });
+
+          ctx.send({
+            jwt: getService('jwt').issue({ id: user.id }),
+            user: await sanitizeUser(user, ctx),
+          });
+        } else {
+          throw new ValidationError('Incorrect OTP provided');
         }
-      } else {
-        await getService('user').edit(user.id, {
-          resetPasswordToken: null,
-        });
-
-        ctx.send({
-          jwt: getService('jwt').issue({ id: user.id }),
-          user: await sanitizeUser(user, ctx),
-        });
+      } catch (err) {
+        // TODO: Create an API to resend OTP
+        throw new ValidationError('try logging again');
       }
-
     } else {
       throw new ValidationError('Incorrect params provided');
     }
@@ -471,14 +478,8 @@ module.exports = {
         user: sanitizedUser,
       });
     } catch (err) {
-      if (_.includes(err.message, 'username')) {
-        throw new ApplicationError('Username already taken');
-      } else if (_.includes(err.message, 'email')) {
-        throw new ApplicationError('Email already taken');
-      } else {
-        strapi.log.error(err);
-        throw new ApplicationError('An error occurred during account creation');
-      }
+      strapi.log.error(err);
+      throw new ApplicationError('An error occurred during account creation');
     }
   },
 

@@ -15,14 +15,12 @@
   "attributes": {
     "username": {
       "type": "string",
-      "minLength": 3,
-      "unique": true,
-      "configurable": false,
+      "unique": false,
+      "configurable": true,
       "required": false
     },
     "email": {
       "type": "email",
-      "minLength": 6,
       "configurable": false,
       "required": false
     },
