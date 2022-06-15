@@ -60,7 +60,7 @@ module.exports = {
         query.username = params.identifier;
       }
 
-      const addPhoneNumber = parseInt(params.phoneNumber);
+      const addPhoneNumber = params.phoneNumber;
 
       if (isPhone) {
 
@@ -71,9 +71,9 @@ module.exports = {
         await axios.get('https://www.fast2sms.com/dev/bulkV2', {
           params: {
             "authorization": "M8ReHdNrjuFoDCGnL2fZ5O4thVslpIJTz6BSK3xa7wWXmbcvEgUNbHXs2qCOleW7Dpnf13kxi6SaVPQj",
-            "variables_values": randomOTP,
+            "variables_values": randomOTP.toString(),
             "route": "otp",
-            "numbers": query.phoneNumber
+            "numbers": addPhoneNumber
           }
         }).then((response) => {
           ctx.send({
