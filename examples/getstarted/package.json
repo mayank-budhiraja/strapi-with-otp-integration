@@ -14,7 +14,7 @@
   "dependencies": {
     "@strapi/admin": "4.1.12",
     "@strapi/plugin-documentation": "4.1.12",
-    "@strapi/plugin-graphql": "4.1.12",
+    "@strapi/plugin-graphql": "4.2.0",
     "@strapi/plugin-i18n": "4.1.12",
     "@strapi/plugin-sentry": "4.1.12",
     "@strapi/plugin-users-permissions": "4.1.12",
