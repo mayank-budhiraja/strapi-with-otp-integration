@@ -136,6 +136,10 @@ module.exports = {
           message: "OTP Sent"
         });
       } catch (err) {
+        ctx.send({
+          status: 400,
+          message: 'Invalid request for local'
+        })
         console.log('error while sending message')
       }
     } else {
