@@ -13,12 +13,6 @@
     "timestamps": true
   },
   "attributes": {
-    "username": {
-      "type": "string",
-      "unique": false,
-      "configurable": true,
-      "required": false
-    },
     "email": {
       "type": "email",
       "configurable": false,
@@ -61,8 +55,13 @@
       "inversedBy": "users",
       "configurable": false
     },
+    "username": {
+      "type": "string",
+      "unique": false,
+      "required": false
+    },
     "phoneNumber": {
-      "type": "biginteger",
+      "type": "integer",
       "unique": true,
       "required": true
     }

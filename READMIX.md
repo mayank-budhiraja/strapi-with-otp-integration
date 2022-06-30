@@ -4,6 +4,7 @@
     - In settings, allow access to verifyOTP api
     - Create a new project with right name
     - Authenticated calls through JWT Token
+    - yarn setup && cd ./examples/getstarted && yarn develop
 
 # Last 
 

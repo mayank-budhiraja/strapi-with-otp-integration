@@ -133,7 +133,10 @@ module.exports = {
 
       try {
         ctx.send({
-          message: "OTP Sent"
+          status: 200,
+          body: {
+            message: "OTP Sent"
+          }
         });
       } catch (err) {
         ctx.send({
