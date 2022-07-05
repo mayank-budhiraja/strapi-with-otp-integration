@@ -31,7 +31,7 @@ module.exports = {
       .store({ type: 'plugin', name: 'users-permissions', key: 'advanced' })
       .get();
 
-    console.log('findThis2 - create function entry',)
+    console.log('findThis2 - create function entry');
 
     await validateCreateUserBody(ctx.request.body);
 
@@ -78,7 +78,7 @@ module.exports = {
 
       ctx.created(sanitizedData);
     } catch (error) {
-      console.log('findThis2 - create function',)
+      console.log('findThis2 - create function');
       throw new ApplicationError(error.message);
     }
   },
@@ -99,7 +99,6 @@ module.exports = {
     if (!user) {
       throw new NotFoundError(`User not found`);
     }
-
 
     await validateUpdateUserBody(ctx.request.body);
 

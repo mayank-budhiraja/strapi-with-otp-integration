@@ -24,7 +24,7 @@
   "workspaces": [
     "packages/*",
     "packages/*/*",
-    "examples/*",
+    "main/*",
     ".github/actions/*"
   ],
   "scripts": {
